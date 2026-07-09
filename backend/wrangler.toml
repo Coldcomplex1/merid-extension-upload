@@ -1,0 +1,16 @@
+# Cloudflare Worker config for the Contextual-by-Merid context-check proxy.
+# Deploy:  npx wrangler deploy   (after `npx wrangler secret put OPENAI_API_KEY`)
+
+name = "merid-context-proxy"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# Non-secret configuration. The provider key is NOT here — set it as a secret:
+#   npx wrangler secret put GEMINI_API_KEY     (default provider)
+#   npx wrangler secret put OPENAI_API_KEY     (only if AI_PROVIDER = "openai")
+[vars]
+AI_PROVIDER = "gemini"        # "gemini" (default) | "openai"
+GEMINI_MODEL = "gemini-2.0-flash"
+OPENAI_MODEL = "gpt-4o-mini"
+ALLOWED_EXTENSION_IDS = ""   # e.g. "abcdefghijklmnopabcdefghijklmnop" — leave empty to allow any extension (dev)
+RATE_LIMIT_PER_MIN = "60"

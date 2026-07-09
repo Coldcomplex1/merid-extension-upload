@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merid — Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <main class="wrap">
+        <header class="head">
+            <h1>Merid</h1>
+            <p class="tagline">Passive English vocabulary learning while you browse Vietnamese websites.</p>
+        </header>
+
+        <!-- AI CONTEXT CHECK -->
+        <section class="card">
+            <h2>AI context check</h2>
+            <p class="hint">
+                Optional. When on, the extension asks a language model whether an English word truly fits
+                the sentence before showing it. Only a <strong>single sentence</strong> is ever sent —
+                never the whole page. No API key is stored inside the extension bundle.
+            </p>
+
+            <div class="field">
+                <label>Mode</label>
+                <div class="radio-row">
+                    <label class="radio"><input type="radio" name="ctxMode" value="off"> Off (dataset only)</label>
+                    <label class="radio"><input type="radio" name="ctxMode" value="proxy"> Backend proxy (recommended)</label>
+                    <label class="radio"><input type="radio" name="ctxMode" value="byok"> Bring your own key</label>
+                </div>
+            </div>
+
+            <div class="field mode-proxy">
+                <label for="proxyUrl">Backend proxy URL</label>
+                <input type="url" id="proxyUrl" placeholder="https://your-worker.your-subdomain.workers.dev" autocomplete="off" spellcheck="false">
+                <p class="hint">Deploy the Cloudflare Worker in <code>/backend</code> and paste its URL here. See the README.</p>
+                <button class="btn ghost" id="testProxy" type="button">Test connection</button>
+                <span class="test-result" id="proxyResult"></span>
+            </div>
+
+            <div class="field mode-byok">
+                <div class="warn">
+                    <strong>Bring-Your-Own-Key is for personal / development use.</strong>
+                    Your key is stored only in <code>chrome.storage.local</code> on this device and is
+                    sent directly from your browser to the provider. It is <em>your</em> key and <em>your</em> billing.
+                    Not recommended for a shared/published install — use the backend proxy for that.
+                </div>
+                <label for="aiProvider">Provider</label>
+                <select id="aiProvider">
+                    <option value="gemini">Google Gemini</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+                <label for="byokKey">Your API key</label>
+                <input type="password" id="byokKey" placeholder="AIza… (Gemini) or sk-… (OpenAI)" autocomplete="off" spellcheck="false">
+                <label for="aiModel">Model</label>
+                <input type="text" id="aiModel" placeholder="gemini-2.0-flash" autocomplete="off" spellcheck="false">
+                <p class="hint" id="byokPermHint">Saving a Gemini key will ask Chrome for permission to contact <code>generativelanguage.googleapis.com</code>. Use a standard AI Studio key (starts with <code>AIza…</code>).</p>
+            </div>
+        </section>
+
+        <!-- REPLACEMENT -->
+        <section class="card">
+            <h2>Replacement</h2>
+
+            <div class="field">
+                <label>How words appear</label>
+                <div class="seg" id="modeSeg">
+                    <button data-val="replace" type="button">Replace directly</button>
+                    <button data-val="highlight" type="button">Highlight only</button>
+                    <button data-val="beside" type="button">Show beside</button>
+                </div>
+                <p class="hint">Replace = swap the word. Highlight = keep the original, show meaning on hover. Beside = <em>từ (word)</em>.</p>
+            </div>
+
+            <div class="field">
+                <label>Intensity</label>
+                <div class="seg" id="intensitySeg">
+                    <button data-val="light" type="button">Light</button>
+                    <button data-val="medium" type="button">Medium</button>
+                    <button data-val="heavy" type="button">Heavy</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Direction</label>
+                <div class="seg" id="directionSeg">
+                    <button data-val="vieEng" type="button">Vietnamese → English</button>
+                    <button data-val="engEng" type="button">English → English</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATASET -->
+        <section class="card">
+            <h2>Vocabulary dataset</h2>
+            <div class="seg" id="datasetSeg">
+                <button data-val="sat" type="button">SAT</button>
+                <button data-val="c1" type="button">C1</button>
+                <button data-val="c2" type="button">C2</button>
+                <button data-val="all" type="button">All</button>
+            </div>
+            <p class="hint" id="datasetInfo">Loaded: …</p>
+        </section>
+
+        <!-- DATA & PRIVACY -->
+        <section class="card">
+            <h2>Data &amp; privacy</h2>
+            <ul class="privacy">
+                <li>Page text is scanned <strong>locally</strong> in your browser to find vocabulary matches.</li>
+                <li>With the AI context check on, only the <strong>single sentence</strong> around a matched word is sent to your backend/OpenAI — never full pages.</li>
+                <li>Your deck, mastered words, and settings are stored on your device (<code>chrome.storage</code>).</li>
+                <li>Turn the context check <strong>Off</strong> above to send nothing off-device.</li>
+            </ul>
+            <button class="btn danger" id="clearAll" type="button">Delete all stored data</button>
+        </section>
+
+        <footer class="foot">
+            <span id="savedTag" class="saved-tag">Settings save automatically</span>
+        </footer>
+    </main>
+
+    <script src="lib/vocab-core.js"></script>
+    <script src="options.js"></script>
+</body>
+
+</html>
