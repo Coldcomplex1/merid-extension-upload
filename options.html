@@ -12,54 +12,8 @@
     <main class="wrap">
         <header class="head">
             <h1>Merid</h1>
-            <p class="tagline">Passive English vocabulary learning while you browse Vietnamese websites.</p>
+            <p class="tagline">Passive English vocabulary learning while you browse Vietnamese websites. Works fully offline — no account, no setup.</p>
         </header>
-
-        <!-- AI CONTEXT CHECK -->
-        <section class="card">
-            <h2>AI context check</h2>
-            <p class="hint">
-                Optional. When on, the extension asks a language model whether an English word truly fits
-                the sentence before showing it. Only a <strong>single sentence</strong> is ever sent —
-                never the whole page. No API key is stored inside the extension bundle.
-            </p>
-
-            <div class="field">
-                <label>Mode</label>
-                <div class="radio-row">
-                    <label class="radio"><input type="radio" name="ctxMode" value="off"> Off (dataset only)</label>
-                    <label class="radio"><input type="radio" name="ctxMode" value="proxy"> Backend proxy (recommended)</label>
-                    <label class="radio"><input type="radio" name="ctxMode" value="byok"> Bring your own key</label>
-                </div>
-            </div>
-
-            <div class="field mode-proxy">
-                <label for="proxyUrl">Backend proxy URL</label>
-                <input type="url" id="proxyUrl" placeholder="https://your-worker.your-subdomain.workers.dev" autocomplete="off" spellcheck="false">
-                <p class="hint">Deploy the Cloudflare Worker in <code>/backend</code> and paste its URL here. See the README.</p>
-                <button class="btn ghost" id="testProxy" type="button">Test connection</button>
-                <span class="test-result" id="proxyResult"></span>
-            </div>
-
-            <div class="field mode-byok">
-                <div class="warn">
-                    <strong>Bring-Your-Own-Key is for personal / development use.</strong>
-                    Your key is stored only in <code>chrome.storage.local</code> on this device and is
-                    sent directly from your browser to the provider. It is <em>your</em> key and <em>your</em> billing.
-                    Not recommended for a shared/published install — use the backend proxy for that.
-                </div>
-                <label for="aiProvider">Provider</label>
-                <select id="aiProvider">
-                    <option value="gemini">Google Gemini</option>
-                    <option value="openai">OpenAI</option>
-                </select>
-                <label for="byokKey">Your API key</label>
-                <input type="password" id="byokKey" placeholder="AIza… (Gemini) or sk-… (OpenAI)" autocomplete="off" spellcheck="false">
-                <label for="aiModel">Model</label>
-                <input type="text" id="aiModel" placeholder="gemini-2.0-flash" autocomplete="off" spellcheck="false">
-                <p class="hint" id="byokPermHint">Saving a Gemini key will ask Chrome for permission to contact <code>generativelanguage.googleapis.com</code>. Use a standard AI Studio key (starts with <code>AIza…</code>).</p>
-            </div>
-        </section>
 
         <!-- REPLACEMENT -->
         <section class="card">
@@ -110,9 +64,9 @@
             <h2>Data &amp; privacy</h2>
             <ul class="privacy">
                 <li>Page text is scanned <strong>locally</strong> in your browser to find vocabulary matches.</li>
-                <li>With the AI context check on, only the <strong>single sentence</strong> around a matched word is sent to your backend/OpenAI — never full pages.</li>
-                <li>Your deck, mastered words, and settings are stored on your device (<code>chrome.storage</code>).</li>
-                <li>Turn the context check <strong>Off</strong> above to send nothing off-device.</li>
+                <li>The extension makes <strong>no network requests</strong> — it never sends page content anywhere and uses no AI API.</li>
+                <li>Only your settings (selected dataset, display mode, intensity, on/off) are stored on your device via <code>chrome.storage</code>.</li>
+                <li>Turn the extension off any time from the popup.</li>
             </ul>
             <button class="btn danger" id="clearAll" type="button">Delete all stored data</button>
         </section>

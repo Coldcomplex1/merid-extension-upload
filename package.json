@@ -1,7 +1,7 @@
 {
   "name": "contextual-by-merid",
   "version": "1.0.0",
-  "description": "Chrome extension that helps Vietnamese learners acquire English vocabulary passively while browsing.",
+  "description": "Local-only Chrome extension that helps Vietnamese learners acquire English vocabulary passively while browsing. No backend, no API keys.",
   "private": true,
   "type": "commonjs",
   "scripts": {

@@ -1,8 +1,10 @@
 // =============================================================
-// Merid — content script
-// Replaces Vietnamese vocabulary on the page with English equivalents,
-// shows a learning tooltip, and (optionally) gates replacements via an AI
-// context check. Pure matching/normalization lives in lib/vocab-core.js (VMCore).
+// Merid — content script (LOCAL-ONLY)
+// Replaces Vietnamese vocabulary on the page with the English equivalent from
+// the selected local dataset and shows a learning tooltip on hover.
+//
+// No network requests, no backend, no AI. Pure matching/normalization lives in
+// lib/vocab-core.js (VMCore).
 // =============================================================
 
 const C = window.VMCore;
@@ -19,8 +21,6 @@ const MUTATION_DEBOUNCE_MS = 300;
 // Text nodes we've already looked at (avoids MutationObserver reprocessing loops).
 // Reset on every init() so a settings change re-evaluates the whole page.
 let processedNodes = new WeakSet();
-// Candidates awaiting an AI context decision (deduped by hash).
-let pendingCandidates = new Map();
 
 const FORBIDDEN_TAGS = new Set([
     'script', 'style', 'textarea', 'input', 'select', 'noscript', 'code', 'pre',
@@ -39,7 +39,6 @@ console.log('[VM] Content script starting…');
 // -------------------------------------------------------------
 function init() {
     if (currentObserver) { currentObserver.disconnect(); currentObserver = null; }
-    pendingCandidates = new Map();
     processedNodes = new WeakSet();
 
     chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
@@ -51,23 +50,21 @@ function init() {
             return;
         }
 
-        {
-            const start = () => {
-                const mode = settings.engEngMode ? 'engEng' : 'vieEng';
-                const vocabMap = C.buildVocabMap(vocabulary, mode);
-                processPage(vocabMap);
-                observeChanges(vocabMap);
-            };
+        const start = () => {
+            const mode = settings.engEngMode ? 'engEng' : 'vieEng';
+            const vocabMap = C.buildVocabMap(vocabulary, mode);
+            processPage(vocabMap);
+            observeChanges(vocabMap);
+        };
 
-            if (vocabulary.length > 0) {
-                start();
-            } else {
-                chrome.runtime.sendMessage({ action: 'getVocabulary' }, (resp) => {
-                    if (chrome.runtime.lastError) { console.warn('[VM] getVocabulary failed:', chrome.runtime.lastError.message); return; }
-                    vocabulary = (resp && resp.vocabulary) || [];
-                    if (vocabulary.length > 0) start();
-                });
-            }
+        if (vocabulary.length > 0) {
+            start();
+        } else {
+            chrome.runtime.sendMessage({ action: 'getVocabulary' }, (resp) => {
+                if (chrome.runtime.lastError) { console.warn('[VM] getVocabulary failed:', chrome.runtime.lastError.message); return; }
+                vocabulary = (resp && resp.vocabulary) || [];
+                if (vocabulary.length > 0) start();
+            });
         }
     });
 }
@@ -109,7 +106,6 @@ function processPage(vocabMap) {
             requestAnimationFrame(processChunk);
         } else {
             console.log('[VM] Page processing complete. Replaced:', replacedCount);
-            flushCandidates();
         }
     }
     processChunk();
@@ -132,40 +128,22 @@ function processTextNode(node, vocabMap) {
         if (!match) { out.push(makeTextNode(tokens[i])); continue; }
 
         const { size, matchedText, items } = match;
-        const item = items[0]; // deterministic pick; AI check disambiguates meaning
+        const item = items[0]; // deterministic pick from the dataset
         const replaceWith = item.word;
-        const contextSnippet = C.extractContext(tokens, i, size);
-        const req = C.buildContextRequestItem({
-            matchedText, candidateEnglish: replaceWith, context: contextSnippet,
-            dataset: C.datasetTagFor(settings.datasetKey)
-        });
 
-        // Deterministic frequency gate — stable across re-renders (no Math.random).
-        if (!C.gateByFrequency(req.hash, settings.frequency)) {
+        // Deterministic intensity gate — stable across re-renders (no Math.random).
+        if (!C.gateByFrequency(matchedText.toLowerCase() + '|' + replaceWith.toLowerCase(), settings.frequency)) {
             out.push(makeTextNode(matchedText));
             i += size - 1;
             continue;
         }
 
         const span = document.createElement('span');
+        span.className = 'vocab-master-highlight';
         span.dataset.word = item.word;
         span.dataset.original = matchedText;
         span.dataset.replacement = replaceWith;
-        span.dataset.hash = req.hash;
-        span.dataset.contextPattern = C.normalizeContext(contextSnippet, matchedText);
-
-        const checking = settings.contextCheckMode && settings.contextCheckMode !== 'off';
-        if (checking) {
-            // Check BEFORE highlighting: show the original text, unstyled, until the
-            // AI approves. Reveal happens in applyResults().
-            span.className = 'vocab-master-highlight vocab-pending';
-            span.textContent = matchedText;
-            if (!pendingCandidates.has(req.hash)) pendingCandidates.set(req.hash, req);
-        } else {
-            // Context check off -> dataset-only, reveal immediately.
-            span.className = 'vocab-master-highlight';
-            applyDisplayMode(span);
-        }
+        applyDisplayMode(span);
 
         out.push(span);
         i += size - 1;
@@ -181,14 +159,12 @@ function processTextNode(node, vocabMap) {
 }
 
 // Turn a span into its final displayed state per the current replacement mode.
-// Used for the immediate (off) path and to reveal an approved pending span.
 function applyDisplayMode(span) {
     const matchedText = span.dataset.original || '';
     const replaceWith = span.dataset.replacement || matchedText;
     const isSameWord = matchedText.toLowerCase().trim() === replaceWith.toLowerCase().trim();
     const mode = settings.replacementMode || 'replace';
 
-    span.classList.remove('vocab-pending');
     span.classList.add('vocab-master-highlight', 'vocab-highlight');
 
     let didReplace = false;
@@ -256,51 +232,12 @@ function processNodeBatch(nodes, vocabMap) {
         const end = Math.min(index + batchSize, nodes.length);
         for (; index < end; index++) processTextNode(nodes[index], vocabMap);
         if (index < nodes.length) requestAnimationFrame(run);
-        else flushCandidates();
     }
     run();
 }
 
-// -------------------------------------------------------------
-// AI context check bridge
-// -------------------------------------------------------------
-function flushCandidates() {
-    if (pendingCandidates.size === 0) return;
-    const items = Array.from(pendingCandidates.values());
-    pendingCandidates = new Map();
-    chrome.runtime.sendMessage({ action: 'checkContextBatch', items }, (response) => {
-        if (chrome.runtime.lastError) return;
-        if (response && response.hits) applyResults(response.hits);
-    });
-}
-
-// results: { [hash]: approved }.
-//   approved => reveal the pending span (apply the display mode + highlight)
-//   rejected => unwrap the span back to plain original text
-function applyResults(results) {
-    for (const [hash, approved] of Object.entries(results)) {
-        const spans = document.querySelectorAll(`.vocab-master-highlight[data-hash="${cssEscape(hash)}"]`);
-        spans.forEach(span => {
-            if (approved) {
-                if (span.classList.contains('vocab-pending')) applyDisplayMode(span);
-            } else {
-                if (span.classList.contains('vocab-replaced')) replacedCount = Math.max(0, replacedCount - 1);
-                span.replaceWith(makeTextNode(span.dataset.original || span.textContent));
-            }
-        });
-    }
-}
-
-function cssEscape(str) {
-    return (window.CSS && CSS.escape) ? CSS.escape(str) : String(str).replace(/["\\]/g, '\\$&');
-}
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'contextCheckResult') {
-        applyResults(request.results || {});
-    } else if (request.action === 'getReplacedCount') {
-        sendResponse({ count: document.querySelectorAll('.vocab-replaced').length });
-    } else if (request.action === 'revertPage') {
+    if (request.action === 'revertPage') {
         revertPage();
         sendResponse({ success: true });
     }
@@ -311,7 +248,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Revert
 // -------------------------------------------------------------
 function revertPage() {
-    pendingCandidates = new Map();
     const parents = new Set();
     document.querySelectorAll('.vocab-master-highlight').forEach(span => {
         const originalText = span.dataset.original || span.textContent;
@@ -346,29 +282,7 @@ function onTooltipClick(e) {
         } catch (err) { /* speech not available */ }
     } else if (e.target.closest('.vm-close')) {
         hideTooltip();
-    } else if (e.target.closest('.vm-vote-up') || e.target.closest('.vm-vote-down')) {
-        handleVote(e.target.closest('.vm-vote-up') || e.target.closest('.vm-vote-down'));
     }
-}
-
-function handleVote(voteBtn) {
-    const vote = voteBtn.classList.contains('vm-vote-up') ? 'up' : 'down';
-    const hash = tooltipElement.dataset.currentHash;
-    if (!hash) return;
-    tooltipElement.querySelectorAll('.vm-vote-up, .vm-vote-down').forEach(b => b.classList.remove('vm-voted'));
-    voteBtn.classList.add('vm-voted');
-    chrome.runtime.sendMessage({
-        action: 'submitFeedback', hash, vote,
-        vietnamesePhrase: tooltipElement.dataset.currentOriginal || '',
-        candidateEnglish: tooltipElement.dataset.currentReplacement || ''
-    }, (response) => {
-        if (response && response.success) {
-            const label = tooltipElement.querySelector('.vm-feedback-label');
-            if (label) label.textContent = vote === 'up' ? 'Thank you!' : 'Thanks!';
-            // A down-vote past threshold blacklists it — revert live.
-            if (vote === 'down' && response.entry && response.entry.blacklisted) applyResults({ [hash]: false });
-        }
-    });
 }
 
 let hideTimeout = null;
@@ -377,7 +291,7 @@ function handleMouseOver(e) {
     const tooltip = e.target.closest('.vocab-master-tooltip');
     if (highlight || tooltip) {
         if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-        if (highlight && !highlight.classList.contains('vocab-pending')) {
+        if (highlight) {
             const item = vocabulary.find(v => v.word === highlight.dataset.word);
             if (item) showTooltip(highlight, item);
         }
@@ -390,15 +304,9 @@ function showTooltip(target, item) {
     const esc = C.escapeHtml;
     const rect = target.getBoundingClientRect();
     const originalText = target.dataset.original || '';
-    const hash = target.dataset.hash || '';
-    const replacement = target.dataset.replacement || item.word;
 
-    tooltipElement.dataset.currentHash = hash;
     tooltipElement.dataset.currentWord = item.word || '';
-    tooltipElement.dataset.currentOriginal = originalText;
-    tooltipElement.dataset.currentReplacement = replacement;
 
-    const showFeedback = !!hash && settings.replacementMode !== 'highlight' && settings.contextCheckMode && settings.contextCheckMode !== 'off';
     const synonyms = (item.synonyms || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 3);
     const antonyms = (item.antonyms || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 3);
     const example = item.example
@@ -425,14 +333,6 @@ function showTooltip(target, item) {
                     <div class="vm-detail-item"><strong>Vietnamese</strong><span>${esc(item.vietnamese || 'N/A')}</span></div>
                     ${(originalText && originalText.toLowerCase() !== (item.word || '').toLowerCase()) ? `<div class="vm-detail-item"><strong>Replaced</strong><span>${esc(originalText)}</span></div>` : ''}
                 </div>
-                ${showFeedback ? `
-                <div class="vm-feedback">
-                    <span class="vm-feedback-label">Does it fit the context?</span>
-                    <div class="vm-feedback-buttons">
-                        <button class="vm-vote-up" type="button" title="Good fit">👍</button>
-                        <button class="vm-vote-down" type="button" title="Bad fit">👎</button>
-                    </div>
-                </div>` : ''}
             </div>
         </div>`;
 
@@ -459,7 +359,7 @@ function hideTooltip() {
 }
 
 // -------------------------------------------------------------
-// React to setting / dataset changes live (no reload, no login gate)
+// React to setting / dataset changes live (no reload)
 // -------------------------------------------------------------
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
