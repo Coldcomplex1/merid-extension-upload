@@ -76,6 +76,32 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.tabs.create({ url: chrome.runtime.getURL('deck.html') });
     });
 
+    // "Run on this page" - inject Merid into the current tab on demand. This is how
+    // the extension works on sites that aren't in the automatic list (activeTab
+    // grants access to the current tab when the popup is opened by the user).
+    const runBtn = document.getElementById('run-btn');
+    const runStatus = document.getElementById('run-status');
+    runBtn.addEventListener('click', () => {
+        setRunStatus('Running…');
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const tab = tabs && tabs[0];
+            if (!tab || tab.id == null) { setRunStatus("Can't run here"); return; }
+            // Skip if Merid is already running in this tab (avoids double injection).
+            chrome.scripting.executeScript(
+                { target: { tabId: tab.id }, func: () => window.__meridContentLoaded === true }
+            ).then((res) => {
+                if (res && res[0] && res[0].result) { setRunStatus('Already running here'); return null; }
+                return chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css'] })
+                    .then(() => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['lib/vocab-core.js', 'content.js'] }))
+                    .then(() => setRunStatus('Merid is running here ✓'));
+            }).catch(() => setRunStatus("Can't run on this page"));
+        });
+    });
+
+    function setRunStatus(msg) {
+        if (runStatus) runStatus.textContent = msg;
+    }
+
     document.getElementById('options-btn').addEventListener('click', () => {
         if (chrome.runtime.openOptionsPage) chrome.runtime.openOptionsPage();
         else window.open(chrome.runtime.getURL('options.html'));

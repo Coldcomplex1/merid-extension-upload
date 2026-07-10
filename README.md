@@ -71,7 +71,10 @@ the popup to pick a dataset and toggle the extension on.
 
 - **Popup** (toolbar icon): pick a dataset (SAT / C1 / C2 / All), set the
   highlight intensity, choose a display mode, toggle Vietnamese→English or
-  English→English, turn the extension on/off, or revert the current page.
+  English→English, turn the extension on/off, **Run on this page** (to use Merid
+  on a site outside the automatic list), open **My deck**, or revert the current page.
+- Merid runs **automatically** on a fixed list of popular Vietnamese sites. On any
+  other site, open the popup and click **Run on this page**.
 - **Settings** (options page): the same replacement/intensity/direction/dataset
   controls plus a **Delete all stored data** button.
 - Hover any replaced/highlighted word to see its definition, example,
@@ -97,12 +100,14 @@ Full policy in [`PRIVACY.md`](PRIVACY.md). In short:
 
 | Permission | Why |
 |---|---|
-| `storage` | Save your settings and deck locally (selected dataset, display mode, intensity, scan direction, on/off, saved words, known words). |
-| `activeTab` | Lets the popup talk to the current tab (e.g. "revert this page"). |
-| `content_scripts: <all_urls>` | The core feature is passive replacement **while you browse any Vietnamese site**, so the content script must run on the pages you visit. It only reads text locally to match vocabulary; nothing is sent anywhere. |
+| `storage` | Save your settings and deck locally (selected dataset, display mode, intensity, scan languages, on/off, saved words, known words). |
+| `activeTab` | When you click "Run on this page" / "Revert this page", grants temporary access to just the current tab. |
+| `scripting` | Injects the content script into the current tab when you click "Run on this page" (for sites outside the automatic list). |
+| Content scripts on a fixed list of popular Vietnamese sites | The extension runs automatically on ~20 popular Vietnamese sites (news + `vi.wikipedia.org`) to replace vocabulary as you read. It only reads text locally to match vocabulary; nothing is sent anywhere. |
 
-No host permissions, no optional permissions, no external domains - the
-extension makes zero network requests.
+There is **no broad `<all_urls>` host permission**: automatic behavior is limited to
+the listed sites, and every other site is opt-in per page via `activeTab`. No remote
+code, no external domains - the extension makes zero network requests.
 
 ---
 

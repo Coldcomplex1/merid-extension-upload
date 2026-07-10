@@ -396,6 +396,32 @@ footer {
     border-color: var(--accent-yellow);
 }
 
+.btn-run {
+    width: 100%;
+    padding: 9px;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--accent-yellow);
+    border: 1px solid var(--accent-yellow);
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-run:hover {
+    background: rgba(244, 190, 55, 0.12);
+}
+
+.run-status {
+    min-height: 14px;
+    margin-top: -6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
 .footer-links {
     display: flex;
     justify-content: center;

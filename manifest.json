@@ -10,7 +10,8 @@
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "background": {
     "service_worker": "background.js"
@@ -18,7 +19,28 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "*://*.vnexpress.net/*",
+        "*://*.tuoitre.vn/*",
+        "*://*.thanhnien.vn/*",
+        "*://*.dantri.com.vn/*",
+        "*://*.vietnamnet.vn/*",
+        "*://*.znews.vn/*",
+        "*://*.zingnews.vn/*",
+        "*://*.nld.com.vn/*",
+        "*://*.kenh14.vn/*",
+        "*://*.cafef.vn/*",
+        "*://*.cafebiz.vn/*",
+        "*://*.genk.vn/*",
+        "*://*.soha.vn/*",
+        "*://*.vtcnews.vn/*",
+        "*://*.laodong.vn/*",
+        "*://*.tienphong.vn/*",
+        "*://*.baomoi.com/*",
+        "*://*.24h.com.vn/*",
+        "*://*.vietnamplus.vn/*",
+        "*://*.vov.vn/*",
+        "*://*.baochinhphu.vn/*",
+        "*://vi.wikipedia.org/*"
       ],
       "js": [
         "lib/vocab-core.js",

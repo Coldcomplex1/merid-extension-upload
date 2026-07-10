@@ -49,6 +49,7 @@ TÍNH NĂNG
 • Hai chiều quét: Việt → Anh và Anh → Anh (bật cả hai để quét đồng thời).
 • Thẻ học khi di chuột: định nghĩa, phát âm (đọc bằng giọng của trình duyệt), đồng nghĩa/trái nghĩa, ví dụ.
 • "Save to Deck" để lưu từ ôn lại; "I know this" để ngừng thay những từ bạn đã thuộc.
+• Tự động chạy trên nhiều trang báo/tham khảo tiếng Việt phổ biến; ở trang khác chỉ cần bấm "Run on this page".
 • Bật/tắt tức thì và hoàn tác trang chỉ với một nhấp.
 
 RIÊNG TƯ & CỤC BỘ
@@ -57,7 +58,7 @@ RIÊNG TƯ & CỤC BỘ
 • Không tài khoản, không đăng nhập, không đồng bộ đám mây.
 • Chỉ lưu cài đặt và bộ từ của bạn trên máy (chrome.storage).
 
-Bật tiện ích, chọn bộ từ, rồi mở một trang tiếng Việt bất kỳ (ví dụ vnexpress.net, tuoitre.vn) và bắt đầu học.
+Bật tiện ích, chọn bộ từ, rồi mở một trang báo tiếng Việt phổ biến (ví dụ vnexpress.net, tuoitre.vn) để học ngay. Ở các trang khác, bấm "Run on this page" trong cửa sổ tiện ích.
 ```
 
 **English**
@@ -71,6 +72,7 @@ FEATURES
 • Two scan directions: Vietnamese → English and English → English (enable both to scan at once).
 • Hover learning card: definition, pronunciation (browser text-to-speech), synonyms/antonyms, example.
 • "Save to Deck" to keep words for review; "I know this" to stop replacing words you already know.
+• Runs automatically on popular Vietnamese news/reference sites; for any other site, just click "Run on this page".
 • Instant on/off and one-click page revert.
 
 PRIVATE & LOCAL
@@ -79,7 +81,7 @@ PRIVATE & LOCAL
 • No account, no sign-in, no cloud sync.
 • Only your settings and deck are stored on your device (chrome.storage).
 
-Turn it on, pick a dataset, then open any Vietnamese site (e.g. vnexpress.net, tuoitre.vn) and start learning.
+Turn it on, pick a dataset, then open a popular Vietnamese site (e.g. vnexpress.net, tuoitre.vn) to start learning right away. On any other site, click "Run on this page" in the popup.
 ```
 
 ---
@@ -96,12 +98,14 @@ Merid replaces selected Vietnamese words on web pages with their English equival
 
 | Permission | Justification to paste |
 |---|---|
-| `storage` | Save the user's own settings and word deck locally (selected dataset, display mode, intensity, scan direction, on/off state, saved words, known words). No data is transmitted. |
-| `activeTab` | Lets the toolbar popup act on the current tab (for example, "revert this page" to restore the original text). |
-| Host access (`content_scripts` on all sites) | The core feature is passive vocabulary replacement while the user browses Vietnamese websites, so the content script must run on the pages the user visits. It only reads visible text locally to find matches; nothing is sent anywhere. |
+| `storage` | Save the user's own settings and word deck locally (selected dataset, display mode, intensity, scan languages, on/off state, saved words, known words). No data is transmitted. |
+| `activeTab` | When the user clicks "Run on this page" (or "Revert this page") in the popup, this grants temporary access to only the current tab so the extension can apply/undo vocabulary replacement there. Access ends when they navigate away. |
+| `scripting` | Used only to inject the vocabulary-replacement content script into the current tab when the user clicks "Run on this page", so the extension can work on sites outside the automatic list. |
+| Content scripts on specific Vietnamese sites | The extension automatically runs on a fixed list of popular Vietnamese websites (news and reference sites such as vnexpress.net, tuoitre.vn, vi.wikipedia.org) to replace vocabulary as the user reads. It only reads visible text locally to find matches; nothing is sent anywhere. |
 
-There are **no** host permissions requested in `host_permissions`, no optional
-permissions, and no remote code - the extension makes zero network requests.
+There is **no** broad host permission (`<all_urls>`): automatic behavior is limited
+to a fixed list of Vietnamese sites, and everything else is opt-in per-page via
+`activeTab`. No remote code - the extension makes zero network requests.
 
 ---
 
@@ -126,4 +130,6 @@ raw file or GitHub Pages) and paste that link into the listing's privacy field.
 
 ```
 Merid is fully local. It does not contact any backend or third-party API, contains no API keys, and makes no network requests. It reads visible page text only to match a bundled vocabulary CSV and replaces matched words in place. Settings and the user's saved/known word lists are stored via chrome.storage on the user's device.
+
+Permission model: there is no broad host permission. The content script runs automatically only on a fixed list of popular Vietnamese sites declared in the manifest. For any other site, the user must click "Run on this page" in the popup, which uses activeTab + scripting to inject the same content script into the current tab only.
 ```

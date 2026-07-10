@@ -10,8 +10,10 @@ and sends nothing off your device.
 ## What the extension processes locally
 
 - **Page text.** To find vocabulary matches, the extension reads the visible text
-  of pages you visit and compares it against bundled word lists. This scanning
-  happens **entirely in your browser**. Page text is never uploaded.
+  of a page and compares it against bundled word lists. This happens only on a
+  fixed list of popular Vietnamese sites, or on any other page when you click
+  "Run on this page". The scanning happens **entirely in your browser**, and page
+  text is never uploaded.
 - **Your settings.** Your preferences (selected dataset, display mode, intensity,
   Vietnamese→English / English→English direction, and on/off state) are stored on
   your device using `chrome.storage`. If you enable Chrome Sync, your *settings*

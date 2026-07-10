@@ -493,3 +493,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // -------------------------------------------------------------
 init();
 createTooltip();
+
+// Marker so the popup's "Run on this page" injection can detect that Merid is
+// already running in this tab and avoid injecting a second time.
+window.__meridContentLoaded = true;
