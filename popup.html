@@ -14,6 +14,15 @@
             <div class="logo">Merid</div>
         </header>
 
+        <section class="page-section">
+            <div class="page-status" id="page-status">
+                <span class="page-dot" id="page-dot"></span>
+                <span class="page-status-text" id="page-status-text">Checking this page…</span>
+            </div>
+            <button class="btn-toggle" id="activate-btn" type="button" disabled>Activate on this page</button>
+            <p class="shortcut-hint" id="shortcut-hint"></p>
+        </section>
+
         <section class="dataset-section">
             <h3 class="section-title">Vocabulary dataset</h3>
             <div class="dataset-btns" id="dataset-btns">
@@ -48,27 +57,26 @@
                 </div>
             </div>
 
-            <div class="setting-item toggle-item">
-                <label>Vie → Eng mode</label>
-                <label class="switch">
-                    <input type="checkbox" id="vie-eng-toggle" checked>
-                    <span class="slider-round"></span>
-                </label>
-            </div>
-
-            <div class="setting-item toggle-item">
-                <label>Eng → Eng mode</label>
-                <label class="switch">
-                    <input type="checkbox" id="eng-eng-toggle">
-                    <span class="slider-round"></span>
-                </label>
+            <div class="setting-item">
+                <label>Languages to scan</label>
+                <div class="mode-cards" id="mode-cards">
+                    <button class="mode-card" data-mode="vieEng" type="button" aria-pressed="false">
+                        <span class="mode-card-title">VIE → ENG</span>
+                        <span class="mode-card-sub">Replace Vietnamese words</span>
+                    </button>
+                    <button class="mode-card" data-mode="engEng" type="button" aria-pressed="false">
+                        <span class="mode-card-title">ENG → ENG</span>
+                        <span class="mode-card-sub">Swap for harder synonyms</span>
+                    </button>
+                </div>
+                <p class="mode-hint">Turn on both to scan Vietnamese and English at once.</p>
             </div>
         </section>
 
         <footer>
-            <button class="btn-toggle active" id="extension-toggle">Extension is ON</button>
             <div class="footer-links">
-                <button class="link-btn" id="revert-btn" type="button">Revert this page</button>
+                <button class="link-btn" id="shortcut-btn" type="button">Change shortcut</button>
+                <button class="link-btn" id="deck-btn" type="button">My deck</button>
                 <button class="link-btn" id="options-btn" type="button">Settings</button>
             </div>
         </footer>

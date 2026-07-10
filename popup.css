@@ -1,4 +1,4 @@
-/* Self-hosted fonts (bundled woff2 — no remote requests, CSP-safe, offline-ready) */
+/* Self-hosted fonts (bundled woff2 - no remote requests, CSP-safe, offline-ready) */
 @font-face {
     font-family: 'Outfit';
     font-style: normal;
@@ -147,6 +147,43 @@ header {
     font-weight: 600;
 }
 
+/* Per-page activation section */
+.page-section {
+    margin-bottom: 25px;
+}
+
+.page-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.page-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: var(--off);
+    flex: 0 0 auto;
+}
+
+.page-dot.on { background-color: var(--ok); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18); }
+.page-dot.idle { background-color: var(--off); }
+.page-dot.off { background-color: #dc2626; }
+
+.page-status-text { line-height: 1.3; }
+
+.shortcut-hint {
+    margin-top: 10px;
+    font-size: 10px;
+    line-height: 1.35;
+    color: var(--text-secondary);
+}
+
+.shortcut-hint.warn { color: var(--accent-yellow); }
+
 .mastery-section {
     margin-bottom: 25px;
 }
@@ -291,56 +328,78 @@ header {
     font-weight: 600;
 }
 
-/* Toggle styling */
-.toggle-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Scan-direction cards (independently selectable) */
+.mode-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
 }
 
-.switch {
+.mode-card {
     position: relative;
-    display: inline-block;
-    width: 34px;
-    height: 18px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider-round {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: left;
     background-color: #1d2d50;
-    transition: .4s;
-    border-radius: 18px;
+    border: 1px solid #1d2d50;
+    border-radius: 8px;
+    padding: 10px 26px 10px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-main);
 }
 
-.slider-round:before {
-    position: absolute;
+.mode-card:hover {
+    border-color: var(--accent-yellow);
+}
+
+.mode-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+}
+
+.mode-card-sub {
+    font-size: 9.5px;
+    line-height: 1.25;
+    color: var(--text-secondary);
+    font-family: var(--font-secondary);
+}
+
+.mode-card::after {
     content: "";
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: var(--accent-yellow);
-    transition: .4s;
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
+    border: 1.5px solid #3a4a6b;
+    transition: all 0.2s;
 }
 
-input:checked+.slider-round {
-    background-color: #f4be3744;
+.mode-card.active {
+    background-color: rgba(244, 190, 55, 0.12);
+    border-color: var(--accent-yellow);
 }
 
-input:checked+.slider-round:before {
-    transform: translateX(16px);
+.mode-card.active .mode-card-title {
+    color: var(--accent-yellow);
+}
+
+.mode-card.active::after {
+    background-color: var(--accent-yellow);
+    border-color: var(--accent-yellow);
+    box-shadow: inset 0 0 0 3px #112240;
+}
+
+.mode-hint {
+    margin-top: 8px;
+    font-size: 9.5px;
+    line-height: 1.3;
+    color: var(--text-secondary);
 }
 
 footer {
@@ -372,6 +431,11 @@ footer {
     background-color: var(--accent-yellow);
     color: #020c1b;
     border-color: var(--accent-yellow);
+}
+
+.btn-toggle:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .footer-links {

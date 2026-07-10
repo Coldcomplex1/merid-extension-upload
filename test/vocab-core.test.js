@@ -8,7 +8,7 @@ const C = require('../lib/vocab-core.js');
 test('normalizeKey lowercases and collapses whitespace but keeps accents', () => {
     assert.strictEqual(C.normalizeKey('  Cân   Nhắc '), 'cân nhắc');
     assert.strictEqual(C.normalizeKey('THỰC HIỆN'), 'thực hiện');
-    // accents are meaningful — must NOT be stripped
+    // accents are meaningful - must NOT be stripped
     assert.notStrictEqual(C.normalizeKey('cân'), C.normalizeKey('can'));
 });
 
@@ -56,6 +56,22 @@ test('buildVocabMap engEng mode indexes synonyms', () => {
     assert.ok(map.has('carry out'));
 });
 
+test('buildVocabMap accepts an array of modes and indexes both directions', () => {
+    const map = C.buildVocabMap(VOCAB, ['vieEng', 'engEng']);
+    // Vietnamese keys present…
+    assert.ok(map.has('cân nhắc'));
+    assert.ok(map.has('thực hiện'));
+    // …and English synonym keys present in the same map.
+    assert.ok(map.has('ponder'));
+    assert.ok(map.has('carry out'));
+});
+
+test('buildVocabMap with an empty mode array falls back to vieEng', () => {
+    const map = C.buildVocabMap(VOCAB, []);
+    assert.ok(map.has('cân nhắc'));
+    assert.ok(!map.has('carry out'));
+});
+
 test('findMatch is greedy longest-first and respects word boundaries', () => {
     const map = C.buildVocabMap(VOCAB, 'vieEng');
     const toks = C.tokenize('Chúng tôi cân nhắc nhiều thứ.');
@@ -84,14 +100,8 @@ test('findMatch returns null when the start token is not a word', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Hashing + deterministic gate
+// Deterministic intensity gate
 // ---------------------------------------------------------------------------
-test('simpleHash is stable and versioned', () => {
-    assert.strictEqual(C.simpleHash('abc'), C.simpleHash('abc'));
-    assert.ok(C.simpleHash('abc').startsWith('h'));
-    assert.notStrictEqual(C.simpleHash('abc'), C.simpleHash('abd'));
-});
-
 test('gateByFrequency is deterministic and honors bounds', () => {
     assert.strictEqual(C.gateByFrequency('x', 0), false);
     assert.strictEqual(C.gateByFrequency('x', 100), true);
@@ -112,63 +122,6 @@ test('gateByFrequency roughly tracks the requested rate', () => {
     for (let i = 0; i < N; i++) if (C.gateByFrequency('k' + i, 30)) hits++;
     const rate = hits / N;
     assert.ok(rate > 0.2 && rate < 0.4, `rate ${rate} not near 0.30`);
-});
-
-// ---------------------------------------------------------------------------
-// Context + request building
-// ---------------------------------------------------------------------------
-test('toSentenceWindow picks the sentence containing the match and caps length', () => {
-    const text = 'First sentence here. Chúng tôi cần cân nhắc nhiều yếu tố. Third one.';
-    const w = C.toSentenceWindow(text, 'cân nhắc');
-    assert.ok(w.includes('cân nhắc'));
-    assert.ok(!w.includes('First sentence'));
-    assert.ok(!w.includes('Third one'));
-    const long = 'x '.repeat(500) + 'cân nhắc';
-    assert.ok(C.toSentenceWindow(long, 'cân nhắc').length <= C.MAX_CONTEXT_CHARS);
-});
-
-test('normalizeContext blanks the matched word', () => {
-    const sig = C.normalizeContext('chúng tôi cân nhắc nhiều thứ', 'cân');
-    assert.ok(sig.includes('___'));
-});
-
-test('buildContextRequestItem returns a minimal, well-formed item', () => {
-    const item = C.buildContextRequestItem({
-        matchedText: 'cân nhắc', candidateEnglish: 'consider',
-        context: 'Chúng tôi cần cân nhắc nhiều yếu tố.', dataset: 'B2'
-    });
-    assert.deepStrictEqual(Object.keys(item).sort(),
-        ['candidateEnglish', 'dataset', 'hash', 'sentenceContext', 'vietnamesePhrase'].sort());
-    assert.strictEqual(item.vietnamesePhrase, 'cân nhắc');
-    assert.strictEqual(item.candidateEnglish, 'consider');
-    assert.strictEqual(item.dataset, 'B2');
-    assert.ok(item.sentenceContext.length <= C.MAX_CONTEXT_CHARS);
-    assert.ok(item.hash);
-});
-
-// ---------------------------------------------------------------------------
-// Model response parsing (shared by Gemini + OpenAI BYOK paths)
-// ---------------------------------------------------------------------------
-test('parseModelResults maps by index and honors shouldReplace', () => {
-    const batch = [{ hash: 'a' }, { hash: 'b' }];
-    const out = C.parseModelResults('{"results":[{"i":0,"shouldReplace":false,"confidence":0.7,"reason":"bad"},{"i":1,"shouldReplace":true}]}', batch);
-    assert.strictEqual(out.a.approved, false);
-    assert.strictEqual(out.a.confidence, 0.7);
-    assert.strictEqual(out.b.approved, true);
-});
-
-test('parseModelResults tolerates prose/code-fences around the JSON', () => {
-    const batch = [{ hash: 'a' }];
-    const out = C.parseModelResults('```json\n{"results":[{"i":0,"shouldReplace":false}]}\n```', batch);
-    assert.strictEqual(out.a.approved, false);
-});
-
-test('parseModelResults FAILS OPEN for missing/garbage output', () => {
-    const batch = [{ hash: 'a' }, { hash: 'b' }];
-    assert.strictEqual(C.parseModelResults('not json at all', batch).a.approved, true);   // both fail open
-    const partial = C.parseModelResults('{"results":[{"i":0,"shouldReplace":false}]}', batch);
-    assert.strictEqual(partial.a.approved, false);  // answered
-    assert.strictEqual(partial.b.approved, true);   // unanswered -> fail open
 });
 
 // ---------------------------------------------------------------------------
@@ -205,10 +158,16 @@ test('withDefaults fills missing keys without mutating input', () => {
     const input = { frequency: 20 };
     const s = C.withDefaults(input);
     assert.strictEqual(s.frequency, 20);
-    assert.strictEqual(s.contextCheckMode, 'off');
-    assert.strictEqual(s.replacementMode, 'replace');
+    assert.strictEqual(s.replacementMode, 'highlight');
     assert.strictEqual(s.extensionEnabled, true);
+    assert.strictEqual(s.datasetKey, 'sat');
     assert.deepStrictEqual(input, { frequency: 20 }); // unchanged
+});
+
+test('withDefaults carries no AI/backend settings', () => {
+    const s = C.withDefaults({});
+    assert.strictEqual(s.contextCheckMode, undefined);
+    assert.strictEqual(s.proxyUrl, undefined);
 });
 
 test('intensity <-> frequency mapping', () => {
