@@ -23,7 +23,7 @@
     --vm-line: rgba(25, 53, 93, 0.16);
     position: absolute;
     z-index: 999999;
-    width: min(336px, calc(100vw - 18px));
+    width: min(312px, calc(100vw - 18px));
     font-family: "Be Vietnam Pro", "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
     color: var(--vm-ink);
 }
