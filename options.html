@@ -39,11 +39,18 @@
             </div>
 
             <div class="field">
-                <label>Direction</label>
-                <div class="seg" id="directionSeg">
-                    <button data-val="vieEng" type="button">Vietnamese → English</button>
-                    <button data-val="engEng" type="button">English → English</button>
+                <label>Scan direction</label>
+                <div class="mode-cards" id="directionCards">
+                    <button class="mode-card" data-mode="vieEng" type="button" aria-pressed="false">
+                        <span class="mode-card-title">Vietnamese → English</span>
+                        <span class="mode-card-sub">Replace Vietnamese words with the English equivalent</span>
+                    </button>
+                    <button class="mode-card" data-mode="engEng" type="button" aria-pressed="false">
+                        <span class="mode-card-title">English → English</span>
+                        <span class="mode-card-sub">Swap easy English words for harder synonyms</span>
+                    </button>
                 </div>
+                <p class="hint">Turn on both to scan Vietnamese and English at the same time.</p>
             </div>
         </section>
 
@@ -57,6 +64,20 @@
                 <button data-val="all" type="button">All</button>
             </div>
             <p class="hint" id="datasetInfo">Loaded: …</p>
+        </section>
+
+        <!-- MY DECK -->
+        <section class="card">
+            <h2>My deck</h2>
+            <p class="hint">Words you saved with <strong>“Save to Deck”</strong> and words you marked as <strong>“I know this”</strong> from the hover card. Stored locally on this device only.</p>
+
+            <h3 class="deck-subhead">Saved words <span class="count" id="savedCount">0</span></h3>
+            <ul class="deck" id="savedList"></ul>
+
+            <h3 class="deck-subhead">Known words <span class="count" id="knownCount">0</span></h3>
+            <p class="hint">Known words are no longer replaced while you browse.</p>
+            <ul class="deck" id="knownList"></ul>
+            <button class="btn ghost" id="resetKnown" type="button">Reset known words</button>
         </section>
 
         <!-- DATA & PRIVACY -->

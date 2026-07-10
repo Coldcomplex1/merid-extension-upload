@@ -1,10 +1,11 @@
 // =============================================================
 // Merid — content script (LOCAL-ONLY)
 // Replaces Vietnamese vocabulary on the page with the English equivalent from
-// the selected local dataset and shows a learning tooltip on hover.
+// the selected local dataset(s) and shows a learning card on hover.
 //
 // No network requests, no backend, no AI. Pure matching/normalization lives in
-// lib/vocab-core.js (VMCore).
+// lib/vocab-core.js (VMCore). The user's deck ("Save to Deck") and known words
+// ("I know this") are stored locally in chrome.storage.local.
 // =============================================================
 
 const C = window.VMCore;
@@ -14,6 +15,10 @@ let vocabulary = [];
 let tooltipElement = null;
 let currentObserver = null;
 let replacedCount = 0;
+
+// User's local lists (lowercased headwords / saved-word keys).
+let knownSet = new Set();
+let savedSet = new Set();
 
 const MAX_REPLACEMENTS_PER_PAGE = 800;   // safety cap to protect big pages
 const MUTATION_DEBOUNCE_MS = 300;
@@ -41,31 +46,42 @@ function init() {
     if (currentObserver) { currentObserver.disconnect(); currentObserver = null; }
     processedNodes = new WeakSet();
 
-    chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
-        if (chrome.runtime.lastError) { console.warn('[VM] getSettings failed:', chrome.runtime.lastError.message); return; }
-        settings = C.withDefaults(response);
+    // Load the local deck/known lists first so we can honour them while scanning.
+    chrome.storage.local.get(['knownWords', 'savedWords'], (local) => {
+        knownSet = new Set((local.knownWords || []).map(w => String(w).toLowerCase()));
+        savedSet = new Set((local.savedWords || []).map(e => String(e && e.word ? e.word : e).toLowerCase()));
 
-        if (settings.extensionEnabled === false) {
-            console.log('[VM] Extension disabled — not processing.');
-            return;
-        }
+        chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
+            if (chrome.runtime.lastError) { console.warn('[VM] getSettings failed:', chrome.runtime.lastError.message); return; }
+            settings = C.withDefaults(response);
 
-        const start = () => {
-            const mode = settings.engEngMode ? 'engEng' : 'vieEng';
-            const vocabMap = C.buildVocabMap(vocabulary, mode);
-            processPage(vocabMap);
-            observeChanges(vocabMap);
-        };
+            if (settings.extensionEnabled === false) {
+                console.log('[VM] Extension disabled — not processing.');
+                return;
+            }
 
-        if (vocabulary.length > 0) {
-            start();
-        } else {
-            chrome.runtime.sendMessage({ action: 'getVocabulary' }, (resp) => {
-                if (chrome.runtime.lastError) { console.warn('[VM] getVocabulary failed:', chrome.runtime.lastError.message); return; }
-                vocabulary = (resp && resp.vocabulary) || [];
-                if (vocabulary.length > 0) start();
-            });
-        }
+            const modes = [settings.vieEngMode && 'vieEng', settings.engEngMode && 'engEng'].filter(Boolean);
+            if (modes.length === 0) {
+                console.log('[VM] No scan direction enabled — nothing to do.');
+                return;
+            }
+
+            const start = () => {
+                const vocabMap = C.buildVocabMap(vocabulary, modes);
+                processPage(vocabMap);
+                observeChanges(vocabMap);
+            };
+
+            if (vocabulary.length > 0) {
+                start();
+            } else {
+                chrome.runtime.sendMessage({ action: 'getVocabulary' }, (resp) => {
+                    if (chrome.runtime.lastError) { console.warn('[VM] getVocabulary failed:', chrome.runtime.lastError.message); return; }
+                    vocabulary = (resp && resp.vocabulary) || [];
+                    if (vocabulary.length > 0) start();
+                });
+            }
+        });
     });
 }
 
@@ -130,6 +146,13 @@ function processTextNode(node, vocabMap) {
         const { size, matchedText, items } = match;
         const item = items[0]; // deterministic pick from the dataset
         const replaceWith = item.word;
+
+        // "I know this" — never replace words the user already knows.
+        if (knownSet.has(replaceWith.toLowerCase())) {
+            out.push(makeTextNode(matchedText));
+            i += size - 1;
+            continue;
+        }
 
         // Deterministic intensity gate — stable across re-renders (no Math.random).
         if (!C.gateByFrequency(matchedText.toLowerCase() + '|' + replaceWith.toLowerCase(), settings.frequency)) {
@@ -259,8 +282,22 @@ function revertPage() {
     replacedCount = 0;
 }
 
+// Unwrap only the spans for a single headword (used by "I know this").
+function revertWord(word) {
+    const wl = String(word).toLowerCase();
+    const parents = new Set();
+    document.querySelectorAll('.vocab-master-highlight').forEach(span => {
+        if ((span.dataset.word || '').toLowerCase() !== wl) return;
+        const originalText = span.dataset.original || span.textContent;
+        if (span.classList.contains('vocab-replaced')) replacedCount = Math.max(0, replacedCount - 1);
+        if (span.parentNode) parents.add(span.parentNode);
+        span.replaceWith(document.createTextNode(originalText));
+    });
+    parents.forEach(p => { try { p.normalize(); } catch (e) { /* detached */ } });
+}
+
 // -------------------------------------------------------------
-// Tooltip
+// Learning card (hover tooltip)
 // -------------------------------------------------------------
 function createTooltip() {
     tooltipElement = document.createElement('div');
@@ -282,7 +319,45 @@ function onTooltipClick(e) {
         } catch (err) { /* speech not available */ }
     } else if (e.target.closest('.vm-close')) {
         hideTooltip();
+    } else if (e.target.closest('.vm-save')) {
+        handleSave(e.target.closest('.vm-save'));
+    } else if (e.target.closest('.vm-know')) {
+        handleKnow();
     }
+}
+
+// "Save to Deck" — append the word to the local deck (chrome.storage.local).
+function handleSave(btn) {
+    const word = tooltipElement.dataset.currentWord || '';
+    if (!word) return;
+    const entry = {
+        word,
+        vietnamese: tooltipElement.dataset.currentVietnamese || '',
+        definition: tooltipElement.dataset.currentDefinition || '',
+        type: tooltipElement.dataset.currentType || ''
+    };
+    chrome.storage.local.get(['savedWords'], (r) => {
+        const list = r.savedWords || [];
+        if (!list.some(e => (e.word || '').toLowerCase() === word.toLowerCase())) list.push(entry);
+        chrome.storage.local.set({ savedWords: list });
+        savedSet.add(word.toLowerCase());
+        if (btn) { btn.textContent = 'Saved ✓'; btn.disabled = true; }
+    });
+}
+
+// "I know this" — mark known, unwrap it here, and skip it on future pages.
+function handleKnow() {
+    const word = tooltipElement.dataset.currentWord || '';
+    if (!word) return;
+    chrome.storage.local.get(['knownWords'], (r) => {
+        const list = r.knownWords || [];
+        const wl = word.toLowerCase();
+        if (!list.map(w => String(w).toLowerCase()).includes(wl)) list.push(wl);
+        chrome.storage.local.set({ knownWords: list });
+        knownSet.add(wl);
+        revertWord(word);
+        hideTooltip();
+    });
 }
 
 let hideTimeout = null;
@@ -304,8 +379,13 @@ function showTooltip(target, item) {
     const esc = C.escapeHtml;
     const rect = target.getBoundingClientRect();
     const originalText = target.dataset.original || '';
+    const phon = item.phon_n_am || item.phon_br || '';
+    const isSaved = savedSet.has((item.word || '').toLowerCase());
 
     tooltipElement.dataset.currentWord = item.word || '';
+    tooltipElement.dataset.currentVietnamese = item.vietnamese || '';
+    tooltipElement.dataset.currentDefinition = item.definition || '';
+    tooltipElement.dataset.currentType = item.type || '';
 
     const synonyms = (item.synonyms || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 3);
     const antonyms = (item.antonyms || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 3);
@@ -322,6 +402,7 @@ function showTooltip(target, item) {
                 <div class="vm-meta">
                     <span class="vm-type">(${esc(item.type || '')})</span>
                     <button class="vm-audio" type="button" aria-label="Play pronunciation">🔊</button>
+                    ${phon ? `<span class="vm-phon">${esc(phon)}</span>` : ''}
                 </div>
             </div>
             <div class="vm-definition">${esc(item.definition || 'No definition available.')}</div>
@@ -333,6 +414,10 @@ function showTooltip(target, item) {
                     <div class="vm-detail-item"><strong>Vietnamese</strong><span>${esc(item.vietnamese || 'N/A')}</span></div>
                     ${(originalText && originalText.toLowerCase() !== (item.word || '').toLowerCase()) ? `<div class="vm-detail-item"><strong>Replaced</strong><span>${esc(originalText)}</span></div>` : ''}
                 </div>
+            </div>
+            <div class="vm-actions">
+                <button class="vm-save" type="button" ${isSaved ? 'disabled' : ''}>${isSaved ? 'Saved ✓' : 'Save to Deck'}</button>
+                <button class="vm-know" type="button">I know this</button>
             </div>
         </div>`;
 
@@ -359,9 +444,22 @@ function hideTooltip() {
 }
 
 // -------------------------------------------------------------
-// React to setting / dataset changes live (no reload)
+// React to setting / dataset / deck changes live (no reload)
 // -------------------------------------------------------------
 chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local') {
+        // Deck/known lists changed (possibly from the options page or another tab).
+        if (changes.knownWords) {
+            const newList = (changes.knownWords.newValue || []).map(w => String(w).toLowerCase());
+            const added = newList.filter(w => !knownSet.has(w));
+            knownSet = new Set(newList);
+            added.forEach(w => revertWord(w)); // removals take effect on next page load
+        }
+        if (changes.savedWords) {
+            savedSet = new Set((changes.savedWords.newValue || []).map(e => String(e && e.word ? e.word : e).toLowerCase()));
+        }
+        return;
+    }
     if (area !== 'sync') return;
     for (const key in changes) settings[key] = changes[key].newValue;
 

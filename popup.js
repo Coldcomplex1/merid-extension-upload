@@ -2,8 +2,7 @@ const C = window.VMCore;
 
 document.addEventListener('DOMContentLoaded', () => {
     const frequencySlider = document.getElementById('frequency-slider');
-    const vieEngToggle = document.getElementById('vie-eng-toggle');
-    const engEngToggle = document.getElementById('eng-eng-toggle');
+    const modeCards = document.getElementById('mode-cards');
     const extensionToggle = document.getElementById('extension-toggle');
     const datasetBtns = document.querySelectorAll('.dataset-btn');
     const modeSeg = document.getElementById('mode-seg');
@@ -14,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
         (raw) => {
             const s = C.withDefaults(raw);
             frequencySlider.value = s.frequency;
-            vieEngToggle.checked = !!s.vieEngMode;
-            engEngToggle.checked = !!s.engEngMode;
+            setModeCard('vieEng', !!s.vieEngMode);
+            setModeCard('engEng', !!s.engEngMode);
             setSegActive(modeSeg, s.replacementMode);
             document.querySelector(`.dataset-btn[data-key="${s.datasetKey}"]`)?.classList.add('active');
             updateExtensionToggleButton(s.extensionEnabled !== false);
@@ -45,14 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    vieEngToggle.addEventListener('change', (e) => {
-        if (e.target.checked) engEngToggle.checked = false;
-        chrome.storage.sync.set({ vieEngMode: e.target.checked, engEngMode: engEngToggle.checked });
-    });
-
-    engEngToggle.addEventListener('change', (e) => {
-        if (e.target.checked) vieEngToggle.checked = false;
-        chrome.storage.sync.set({ engEngMode: e.target.checked, vieEngMode: vieEngToggle.checked });
+    // Scan-direction cards toggle independently — both can be on at once.
+    modeCards.addEventListener('click', (e) => {
+        const card = e.target.closest('.mode-card'); if (!card) return;
+        const next = !card.classList.contains('active');
+        setModeCard(card.dataset.mode, next);
+        chrome.storage.sync.set({
+            vieEngMode: isModeCardOn('vieEng'),
+            engEngMode: isModeCardOn('engEng')
+        });
     });
 
     extensionToggle.addEventListener('click', () => {
@@ -78,6 +78,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---- helpers ----
+    function setModeCard(mode, on) {
+        const card = modeCards.querySelector(`.mode-card[data-mode="${mode}"]`);
+        if (!card) return;
+        card.classList.toggle('active', !!on);
+        card.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
+    function isModeCardOn(mode) {
+        return !!modeCards.querySelector(`.mode-card[data-mode="${mode}"]`)?.classList.contains('active');
+    }
+
     function setSegActive(seg, val) {
         seg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.val === val));
     }

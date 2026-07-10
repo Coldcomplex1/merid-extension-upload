@@ -19,7 +19,9 @@ const FILES = [
     'lib/vocab-core.js',
     'fonts/Outfit-latin.woff2',
     'fonts/Inter-latin.woff2',
-    'icon.png'
+    'icon16.png',
+    'icon48.png',
+    'icon128.png'
 ];
 
 // Datasets are matched dynamically so a future dataset-B2.csv ships automatically.

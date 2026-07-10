@@ -48,20 +48,19 @@
                 </div>
             </div>
 
-            <div class="setting-item toggle-item">
-                <label>Vie → Eng mode</label>
-                <label class="switch">
-                    <input type="checkbox" id="vie-eng-toggle" checked>
-                    <span class="slider-round"></span>
-                </label>
-            </div>
-
-            <div class="setting-item toggle-item">
-                <label>Eng → Eng mode</label>
-                <label class="switch">
-                    <input type="checkbox" id="eng-eng-toggle">
-                    <span class="slider-round"></span>
-                </label>
+            <div class="setting-item">
+                <label>Scan direction</label>
+                <div class="mode-cards" id="mode-cards">
+                    <button class="mode-card" data-mode="vieEng" type="button" aria-pressed="false">
+                        <span class="mode-card-title">VIE → ENG</span>
+                        <span class="mode-card-sub">Replace Vietnamese words</span>
+                    </button>
+                    <button class="mode-card" data-mode="engEng" type="button" aria-pressed="false">
+                        <span class="mode-card-title">ENG → ENG</span>
+                        <span class="mode-card-sub">Swap for harder synonyms</span>
+                    </button>
+                </div>
+                <p class="mode-hint">Turn on both to scan Vietnamese and English at once.</p>
             </div>
         </section>
 

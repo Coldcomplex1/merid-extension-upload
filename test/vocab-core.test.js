@@ -56,6 +56,22 @@ test('buildVocabMap engEng mode indexes synonyms', () => {
     assert.ok(map.has('carry out'));
 });
 
+test('buildVocabMap accepts an array of modes and indexes both directions', () => {
+    const map = C.buildVocabMap(VOCAB, ['vieEng', 'engEng']);
+    // Vietnamese keys present…
+    assert.ok(map.has('cân nhắc'));
+    assert.ok(map.has('thực hiện'));
+    // …and English synonym keys present in the same map.
+    assert.ok(map.has('ponder'));
+    assert.ok(map.has('carry out'));
+});
+
+test('buildVocabMap with an empty mode array falls back to vieEng', () => {
+    const map = C.buildVocabMap(VOCAB, []);
+    assert.ok(map.has('cân nhắc'));
+    assert.ok(!map.has('carry out'));
+});
+
 test('findMatch is greedy longest-first and respects word boundaries', () => {
     const map = C.buildVocabMap(VOCAB, 'vieEng');
     const toks = C.tokenize('Chúng tôi cân nhắc nhiều thứ.');

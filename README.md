@@ -17,9 +17,14 @@ anywhere.
 - Replaces / highlights / annotates matches with the English word.
 - **Three display modes:** Replace directly · Highlight only (hover for meaning) · Show beside (`từ (word)`).
 - **Adjustable intensity** (Light / Medium / Heavy) so you control how aggressive it is.
-- Learning tooltip: definition, pronunciation (browser TTS), synonyms/antonyms, example.
+- **Two scan directions** — Vietnamese → English and English → English — that toggle
+  independently; enable both to scan Vietnamese and English on the same page.
+- Learning card on hover: definition, pronunciation (browser TTS), phonetics,
+  synonyms/antonyms, example.
+- **Personal deck (local):** *Save to Deck* keeps a word for review; *I know this*
+  stops replacing words you already know. Both lists are managed on the Settings page.
 - Works on dynamic / SPA pages (debounced `MutationObserver`), instant on/off, instant revert.
-- **Fully local:** settings stay on your device; nothing ever leaves the browser.
+- **Fully local:** settings and your deck stay on your device; nothing ever leaves the browser.
 
 ---
 
@@ -90,7 +95,7 @@ Full policy in [`PRIVACY.md`](PRIVACY.md). In short:
 
 | Permission | Why |
 |---|---|
-| `storage` | Save your settings locally (selected dataset, display mode, intensity, on/off). |
+| `storage` | Save your settings and deck locally (selected dataset, display mode, intensity, scan direction, on/off, saved words, known words). |
 | `activeTab` | Lets the popup talk to the current tab (e.g. "revert this page"). |
 | `content_scripts: <all_urls>` | The core feature is passive replacement **while you browse any Vietnamese site**, so the content script must run on the pages you visit. It only reads text locally to match vocabulary; nothing is sent anywhere. |
 
@@ -118,13 +123,23 @@ No build step is required to run the extension unpacked. Tooling is zero-depende
 (uses Node's built-ins):
 
 ```bash
-npm test        # run the unit test suite (node --test) for lib/vocab-core.js
-npm run lint    # syntax-check every extension script (node --check)
-npm run build   # copy shippable files to dist/ (+ dist.zip) and fail if a secret is present
+npm test          # run the unit test suite (node --test) for lib/vocab-core.js
+npm run lint      # syntax-check every extension script (node --check)
+npm run build     # copy shippable files to dist/ (+ dist.zip) and fail if a secret is present
+npm run gen:assets # re-render the icons + store images from assets/ (needs a Chromium binary)
 ```
 
-The build **whitelists** only the files the extension needs — `test/`,
-`scripts/`, docs, and `node_modules/` never ship.
+The build **whitelists** only the files the extension needs — `assets/`,
+`store-assets/`, `test/`, `scripts/`, docs, and `node_modules/` never ship.
+
+### Store assets
+
+Branded PNGs are generated from the HTML sources in [`assets/`](assets) by
+`scripts/gen-assets.js` (via a headless Chromium; set `CHROME_BIN` if it can't be
+found automatically). Outputs: the extension icons (`icon16/48/128.png`) and the
+Chrome Web Store images in [`store-assets/`](store-assets) (screenshots 1280×800,
+promo tile 440×280, marquee 1400×560). Copy-paste listing text lives in
+[`STORE_LISTING.md`](STORE_LISTING.md).
 
 ---
 
@@ -139,6 +154,9 @@ The build **whitelists** only the files the extension needs — `test/`,
 7. Confirm **no API key** exists in the built files (the build fails if a key-shaped string is found).
 8. Confirm **no backend / API call** is made (open DevTools → Network on a test page; there should be no external requests from the extension).
 9. Confirm permissions are minimal (`storage`, `activeTab`).
-10. Prepare store assets: icon (128×128 provided), 1280×800 screenshots, short/long description.
+10. Store assets are ready: icons `icon16/48/128.png`, screenshots + promo images in
+    [`store-assets/`](store-assets). Copy the listing text from [`STORE_LISTING.md`](STORE_LISTING.md).
 11. Zip the production build (`dist.zip` is created for you).
-12. Create/sign in to a Chrome Web Store developer account ($5 one-time) and upload `dist.zip`, then submit for review.
+12. Create/sign in to a Chrome Web Store developer account ($5 one-time), upload `dist.zip`,
+    fill the data-use form ("does not collect or transmit user data"), add a public URL for
+    [`PRIVACY.md`](PRIVACY.md), then submit for review.

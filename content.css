@@ -13,28 +13,6 @@
     border-bottom: 3px solid #f4be37;
 }
 
-/* Rejected state: found but contextually unsuitable */
-.vocab-master-highlight.vocab-rejected {
-    border-bottom: 2px dotted #3b82f6;
-    background-color: rgba(59, 130, 246, 0.05);
-    cursor: help;
-}
-
-.vocab-master-highlight.vocab-rejected:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-}
-
-/* Pending: matched but awaiting the AI context check — render as normal text
-   (no highlight, no tooltip) so nothing is highlighted before it is approved. */
-.vocab-master-highlight.vocab-pending,
-.vocab-master-highlight.vocab-pending:hover {
-    border-bottom: none;
-    background-color: transparent;
-    padding: 0;
-    font-weight: inherit;
-    cursor: inherit;
-}
-
 .vocab-master-tooltip {
     --vm-navy: #19355d;
     --vm-gold: #f3c94b;
@@ -133,6 +111,13 @@
     font-size: 13.5px;
     font-style: italic;
     color: #111827;
+}
+
+.vm-phon {
+    font-size: 12px;
+    color: #5d6880;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 .vm-audio {
@@ -264,82 +249,6 @@
     font-weight: 600;
 }
 
-.vm-status {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.vm-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 7px;
-    border-radius: 999px;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.vm-badge--fast {
-    background: rgba(243, 201, 75, 0.22);
-    color: #9c6700;
-}
-
-.vm-badge--pending {
-    background: rgba(100, 116, 139, 0.16);
-    color: #475569;
-}
-
-.vm-badge--rejected {
-    background: rgba(239, 68, 68, 0.13);
-    color: #c53d32;
-}
-
-.vm-feedback {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(25, 53, 93, 0.12);
-}
-
-.vm-feedback-label {
-    font-size: 10.5px;
-    color: #506079;
-    font-weight: 700;
-}
-
-.vm-feedback-buttons {
-    display: flex;
-    gap: 5px;
-}
-
-.vm-feedback-buttons button {
-    min-width: 38px;
-    padding: 5px 7px;
-    border: 1px solid rgba(25, 53, 93, 0.16);
-    border-radius: 999px;
-    background: var(--vm-cream-strong);
-    color: var(--vm-navy);
-    font-size: 10px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
-}
-
-.vm-feedback-buttons button:hover {
-    transform: translateY(-1px);
-    background: #ffffff;
-}
-
-.vm-feedback-buttons .vm-voted {
-    background: var(--vm-navy);
-    border-color: var(--vm-navy);
-    color: var(--vm-cream-strong);
-}
-
 .vm-actions {
     display: flex;
     gap: 0;
@@ -438,11 +347,6 @@
     .vm-chip {
         font-size: 9.5px;
         padding: 4px 5px;
-    }
-
-    .vm-feedback {
-        flex-direction: column;
-        align-items: flex-start;
     }
 
     .vm-actions button {
