@@ -1,5 +1,5 @@
 // =============================================================
-// Merid — content script (LOCAL-ONLY)
+// Merid - content script (LOCAL-ONLY)
 // Replaces Vietnamese vocabulary on the page with the English equivalent from
 // the selected local dataset(s) and shows a learning card on hover.
 //
@@ -37,6 +37,13 @@ const SKIP_ANCESTOR_SELECTOR =
     '[contenteditable=""], [contenteditable="true"], [aria-hidden="true"], ' +
     '.vocab-master-highlight, .vocab-master-tooltip';
 
+// White speaker glyph for the pronunciation button (kept crisp at small sizes).
+const SPEAKER_SVG =
+    '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false">' +
+    '<path fill="currentColor" d="M4 9.5v5h3.2L12 18V6L7.2 9.5H4z"/>' +
+    '<path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M15.2 9.4a3.6 3.6 0 0 1 0 5.2"/>' +
+    '</svg>';
+
 console.log('[VM] Content script starting…');
 
 // -------------------------------------------------------------
@@ -56,13 +63,13 @@ function init() {
             settings = C.withDefaults(response);
 
             if (settings.extensionEnabled === false) {
-                console.log('[VM] Extension disabled — not processing.');
+                console.log('[VM] Extension disabled - not processing.');
                 return;
             }
 
             const modes = [settings.vieEngMode && 'vieEng', settings.engEngMode && 'engEng'].filter(Boolean);
             if (modes.length === 0) {
-                console.log('[VM] No scan direction enabled — nothing to do.');
+                console.log('[VM] No scan direction enabled - nothing to do.');
                 return;
             }
 
@@ -147,14 +154,14 @@ function processTextNode(node, vocabMap) {
         const item = items[0]; // deterministic pick from the dataset
         const replaceWith = item.word;
 
-        // "I know this" — never replace words the user already knows.
+        // "I know this" - never replace words the user already knows.
         if (knownSet.has(replaceWith.toLowerCase())) {
             out.push(makeTextNode(matchedText));
             i += size - 1;
             continue;
         }
 
-        // Deterministic intensity gate — stable across re-renders (no Math.random).
+        // Deterministic intensity gate - stable across re-renders (no Math.random).
         if (!C.gateByFrequency(matchedText.toLowerCase() + '|' + replaceWith.toLowerCase(), settings.frequency)) {
             out.push(makeTextNode(matchedText));
             i += size - 1;
@@ -215,7 +222,7 @@ function makeTextNode(text) {
 }
 
 // -------------------------------------------------------------
-// Dynamic content — debounced MutationObserver
+// Dynamic content - debounced MutationObserver
 // -------------------------------------------------------------
 function observeChanges(vocabMap) {
     let debounceTimer = null;
@@ -326,7 +333,7 @@ function onTooltipClick(e) {
     }
 }
 
-// "Save to Deck" — append the word to the local deck (chrome.storage.local).
+// "Save to Deck" - append the word to the local deck (chrome.storage.local).
 function handleSave(btn) {
     const word = tooltipElement.dataset.currentWord || '';
     if (!word) return;
@@ -345,7 +352,7 @@ function handleSave(btn) {
     });
 }
 
-// "I know this" — mark known, unwrap it here, and skip it on future pages.
+// "I know this" - mark known, unwrap it here, and skip it on future pages.
 function handleKnow() {
     const word = tooltipElement.dataset.currentWord || '';
     if (!word) return;
@@ -392,27 +399,27 @@ function showTooltip(target, item) {
     const example = item.example
         ? esc(item.example).replace(new RegExp('(' + C.escapeRegExp(esc(item.word)) + ')', 'gi'), '<strong>$1</strong>')
         : 'No example available.';
-    const titleFontSize = Math.max(16, 26 - Math.max(0, (item.word || '').length - 8) * 1.2);
+    const titleFontSize = Math.max(18, 28 - Math.max(0, (item.word || '').length - 9) * 1.2);
 
     tooltipElement.innerHTML = `
         <div class="vm-card">
-            <button class="vm-close" type="button" aria-label="Close tooltip">&times;</button>
-            <div class="vm-header">
-                <div class="vm-title vm-word" style="font-size:${titleFontSize.toFixed(1)}px">${esc((item.word || '').toUpperCase())}</div>
-                <div class="vm-meta">
-                    <span class="vm-type">(${esc(item.type || '')})</span>
-                    <button class="vm-audio" type="button" aria-label="Play pronunciation">🔊</button>
-                    ${phon ? `<span class="vm-phon">${esc(phon)}</span>` : ''}
+            <button class="vm-close" type="button" aria-label="Close">&times;</button>
+            <div class="vm-body">
+                <div class="vm-header">
+                    <div class="vm-title vm-word" style="font-size:${titleFontSize.toFixed(1)}px">${esc((item.word || '').toUpperCase())}</div>
+                    <div class="vm-meta">
+                        <span class="vm-type">(${esc(item.type || '')})</span>
+                        <button class="vm-audio" type="button" aria-label="Play pronunciation">${SPEAKER_SVG}</button>
+                        ${phon ? `<span class="vm-phon">${esc(phon)}</span>` : ''}
+                    </div>
                 </div>
-            </div>
-            <div class="vm-definition">${esc(item.definition || 'No definition available.')}</div>
-            ${synonyms.length ? `<div class="vm-chips vm-chips--synonyms">${synonyms.map(s => `<span class="vm-chip vm-yellow">${esc(s)}</span>`).join('')}</div>` : ''}
-            ${antonyms.length ? `<div class="vm-chips vm-chips--antonyms">${antonyms.map(s => `<span class="vm-chip vm-dark">${esc(s)}</span>`).join('')}</div>` : ''}
-            <div class="vm-example">${example}</div>
-            <div class="vm-secondary">
-                <div class="vm-details">
-                    <div class="vm-detail-item"><strong>Vietnamese</strong><span>${esc(item.vietnamese || 'N/A')}</span></div>
-                    ${(originalText && originalText.toLowerCase() !== (item.word || '').toLowerCase()) ? `<div class="vm-detail-item"><strong>Replaced</strong><span>${esc(originalText)}</span></div>` : ''}
+                <div class="vm-definition">${esc(item.definition || 'No definition available.')}</div>
+                ${synonyms.length ? `<div class="vm-chips">${synonyms.map(s => `<span class="vm-chip vm-yellow">${esc(s)}</span>`).join('')}</div>` : ''}
+                ${antonyms.length ? `<div class="vm-chips">${antonyms.map(s => `<span class="vm-chip vm-dark">${esc(s)}</span>`).join('')}</div>` : ''}
+                <div class="vm-example">${example}</div>
+                <div class="vm-trans">
+                    <div class="vm-trow"><span class="vm-tlabel">Vietnamese</span><span class="vm-tvalue">${esc(item.vietnamese || 'N/A')}</span></div>
+                    ${originalText ? `<div class="vm-trow"><span class="vm-tlabel">Replaced</span><span class="vm-tvalue">${esc(originalText)}</span></div>` : ''}
                 </div>
             </div>
             <div class="vm-actions">

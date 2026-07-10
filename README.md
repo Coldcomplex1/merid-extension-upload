@@ -6,7 +6,7 @@ detects selected Vietnamese words/phrases from bundled SAT / CEFR datasets and
 swaps or annotates them with the English equivalent.
 
 Everything runs **inside your browser**. There is **no backend, no API key, and
-no network request to any server** — the extension never sends page content
+no network request to any server** - the extension never sends page content
 anywhere.
 
 ---
@@ -17,12 +17,13 @@ anywhere.
 - Replaces / highlights / annotates matches with the English word.
 - **Three display modes:** Replace directly · Highlight only (hover for meaning) · Show beside (`từ (word)`).
 - **Adjustable intensity** (Light / Medium / Heavy) so you control how aggressive it is.
-- **Two scan directions** — Vietnamese → English and English → English — that toggle
+- **Two scan directions** - Vietnamese → English and English → English - that toggle
   independently; enable both to scan Vietnamese and English on the same page.
 - Learning card on hover: definition, pronunciation (browser TTS), phonetics,
   synonyms/antonyms, example.
 - **Personal deck (local):** *Save to Deck* keeps a word for review; *I know this*
-  stops replacing words you already know. Both lists are managed on the Settings page.
+  stops replacing words you already know. Both lists are managed on a dedicated
+  **My deck** page (`deck.html`), opened from the popup.
 - Works on dynamic / SPA pages (debounced `MutationObserver`), instant on/off, instant revert.
 - **Fully local:** settings and your deck stay on your device; nothing ever leaves the browser.
 
@@ -31,8 +32,8 @@ anywhere.
 ## Architecture
 
 ```
-Chrome Extension (local only — no network, no secrets)
- ├─ lib/vocab-core.js   Pure, DOM-free logic (matching, normalization, CSV) — also unit-tested
+Chrome Extension (local only - no network, no secrets)
+ ├─ lib/vocab-core.js   Pure, DOM-free logic (matching, normalization, CSV) - also unit-tested
  ├─ content.js          Scans visible text, replaces matches, tooltip, revert
  ├─ background.js       Loads bundled CSV datasets, serves settings/vocabulary to the UI + content script
  ├─ popup.*             Quick controls (dataset, intensity, mode, on/off, revert)
@@ -41,12 +42,13 @@ Chrome Extension (local only — no network, no secrets)
 
 | File | Role |
 |---|---|
-| `manifest.json` | MV3 manifest — minimal permissions, options page, CSP |
+| `manifest.json` | MV3 manifest - minimal permissions, options page, CSP |
 | `lib/vocab-core.js` | Shared pure functions (works in the content script **and** in Node tests) |
 | `content.js` | DOM scanning, replacement, tooltip, live re-processing, revert |
 | `background.js` | Loads bundled CSV datasets, answers settings/vocabulary requests (no network) |
-| `popup.html/js/css` | Toolbar popup: dataset, intensity, mode, toggles, revert, settings link |
+| `popup.html/js/css` | Toolbar popup: dataset, intensity, mode, toggles, revert, deck + settings links |
 | `options.html/js/css` | Settings page: replacement options, dataset, data controls |
+| `deck.html/js/css` | Dedicated "My deck" page: saved + known words (local) |
 | `dataset-*.csv` | Bundled vocabulary (SAT / C1 / C2) |
 | `fonts/` | Self-hosted Outfit + Inter woff2 (no remote font requests) |
 | `test/`, `scripts/` | Node test suite + zero-dep lint/build scripts |
@@ -60,7 +62,7 @@ Chrome Extension (local only — no network, no secrets)
 3. Click **Load unpacked** and select the repo folder (or the `dist/` folder after `npm run build`).
 4. Pin the extension and open a Vietnamese site (e.g. vnexpress.net, tuoitre.vn).
 
-That's it — there is no setup, no account, and no configuration required. Open
+That's it - there is no setup, no account, and no configuration required. Open
 the popup to pick a dataset and toggle the extension on.
 
 ---
@@ -99,7 +101,7 @@ Full policy in [`PRIVACY.md`](PRIVACY.md). In short:
 | `activeTab` | Lets the popup talk to the current tab (e.g. "revert this page"). |
 | `content_scripts: <all_urls>` | The core feature is passive replacement **while you browse any Vietnamese site**, so the content script must run on the pages you visit. It only reads text locally to match vocabulary; nothing is sent anywhere. |
 
-No host permissions, no optional permissions, no external domains — the
+No host permissions, no optional permissions, no external domains - the
 extension makes zero network requests.
 
 ---
@@ -129,7 +131,7 @@ npm run build     # copy shippable files to dist/ (+ dist.zip) and fail if a sec
 npm run gen:assets # re-render the icons + store images from assets/ (needs a Chromium binary)
 ```
 
-The build **whitelists** only the files the extension needs — `assets/`,
+The build **whitelists** only the files the extension needs - `assets/`,
 `store-assets/`, `test/`, `scripts/`, docs, and `node_modules/` never ship.
 
 ### Store assets

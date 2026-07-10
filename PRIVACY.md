@@ -1,4 +1,4 @@
-# Privacy Policy — Merid
+# Privacy Policy - Merid
 
 _Last updated: 2026-07-10_
 
@@ -15,7 +15,7 @@ and sends nothing off your device.
 - **Your settings.** Your preferences (selected dataset, display mode, intensity,
   Vietnamese→English / English→English direction, and on/off state) are stored on
   your device using `chrome.storage`. If you enable Chrome Sync, your *settings*
-  may sync across your own Chrome profiles via Google — the extension itself runs
+  may sync across your own Chrome profiles via Google - the extension itself runs
   no account server.
 
 ## What is sent off your device

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merid — Settings</title>
+    <title>Merid - Settings</title>
     <link rel="stylesheet" href="options.css">
 </head>
 
@@ -12,7 +12,7 @@
     <main class="wrap">
         <header class="head">
             <h1>Merid</h1>
-            <p class="tagline">Passive English vocabulary learning while you browse Vietnamese websites. Works fully offline — no account, no setup.</p>
+            <p class="tagline">Passive English vocabulary learning while you browse Vietnamese websites. Works fully offline - no account, no setup.</p>
         </header>
 
         <!-- REPLACEMENT -->
@@ -39,7 +39,7 @@
             </div>
 
             <div class="field">
-                <label>Scan direction</label>
+                <label>Languages to scan</label>
                 <div class="mode-cards" id="directionCards">
                     <button class="mode-card" data-mode="vieEng" type="button" aria-pressed="false">
                         <span class="mode-card-title">Vietnamese → English</span>
@@ -66,26 +66,12 @@
             <p class="hint" id="datasetInfo">Loaded: …</p>
         </section>
 
-        <!-- MY DECK -->
-        <section class="card">
-            <h2>My deck</h2>
-            <p class="hint">Words you saved with <strong>“Save to Deck”</strong> and words you marked as <strong>“I know this”</strong> from the hover card. Stored locally on this device only.</p>
-
-            <h3 class="deck-subhead">Saved words <span class="count" id="savedCount">0</span></h3>
-            <ul class="deck" id="savedList"></ul>
-
-            <h3 class="deck-subhead">Known words <span class="count" id="knownCount">0</span></h3>
-            <p class="hint">Known words are no longer replaced while you browse.</p>
-            <ul class="deck" id="knownList"></ul>
-            <button class="btn ghost" id="resetKnown" type="button">Reset known words</button>
-        </section>
-
         <!-- DATA & PRIVACY -->
         <section class="card">
             <h2>Data &amp; privacy</h2>
             <ul class="privacy">
                 <li>Page text is scanned <strong>locally</strong> in your browser to find vocabulary matches.</li>
-                <li>The extension makes <strong>no network requests</strong> — it never sends page content anywhere and uses no AI API.</li>
+                <li>The extension makes <strong>no network requests</strong> - it never sends page content anywhere and uses no AI API.</li>
                 <li>Only your settings (selected dataset, display mode, intensity, on/off) are stored on your device via <code>chrome.storage</code>.</li>
                 <li>Turn the extension off any time from the popup.</li>
             </ul>

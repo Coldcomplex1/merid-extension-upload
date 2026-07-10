@@ -8,7 +8,7 @@ const C = require('../lib/vocab-core.js');
 test('normalizeKey lowercases and collapses whitespace but keeps accents', () => {
     assert.strictEqual(C.normalizeKey('  Cân   Nhắc '), 'cân nhắc');
     assert.strictEqual(C.normalizeKey('THỰC HIỆN'), 'thực hiện');
-    // accents are meaningful — must NOT be stripped
+    // accents are meaningful - must NOT be stripped
     assert.notStrictEqual(C.normalizeKey('cân'), C.normalizeKey('can'));
 });
 
@@ -158,7 +158,7 @@ test('withDefaults fills missing keys without mutating input', () => {
     const input = { frequency: 20 };
     const s = C.withDefaults(input);
     assert.strictEqual(s.frequency, 20);
-    assert.strictEqual(s.replacementMode, 'replace');
+    assert.strictEqual(s.replacementMode, 'highlight');
     assert.strictEqual(s.extensionEnabled, true);
     assert.strictEqual(s.datasetKey, 'sat');
     assert.deepStrictEqual(input, { frequency: 20 }); // unchanged

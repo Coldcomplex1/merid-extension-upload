@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Merid",
   "version": "1.0",
-  "description": "Learn English while browsing Vietnamese websites — swaps Vietnamese words for SAT/CEFR English vocabulary. Fully local, no account needed.",
+  "description": "Learn English while browsing Vietnamese websites - swaps Vietnamese words for SAT/CEFR English vocabulary. Fully local, no account needed.",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

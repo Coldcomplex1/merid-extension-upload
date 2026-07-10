@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Scan-direction cards toggle independently — both can be on at once.
+    // Scan-direction cards toggle independently - both can be on at once.
     modeCards.addEventListener('click', (e) => {
         const card = e.target.closest('.mode-card'); if (!card) return;
         const next = !card.classList.contains('active');
@@ -70,6 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 chrome.tabs.sendMessage(tabs[0].id, { action: 'revertPage' }, () => void chrome.runtime.lastError);
             }
         });
+    });
+
+    document.getElementById('deck-btn').addEventListener('click', () => {
+        chrome.tabs.create({ url: chrome.runtime.getURL('deck.html') });
     });
 
     document.getElementById('options-btn').addEventListener('click', () => {

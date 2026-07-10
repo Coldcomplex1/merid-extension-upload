@@ -1,7 +1,7 @@
-# Chrome Web Store — listing copy (copy & paste)
+# Chrome Web Store - listing copy (copy & paste)
 
 Everything below is ready to paste into the Chrome Web Store developer dashboard.
-Two languages are provided — use **Vietnamese** as the primary listing (the audience
+Two languages are provided - use **Vietnamese** as the primary listing (the audience
 is Vietnamese learners) and add **English** as a secondary/localized listing if you
 wish. Assets to upload are in [`store-assets/`](store-assets) and the icons are
 `icon128.png` (store icon) plus the bundled 16/48/128 set.
@@ -22,16 +22,16 @@ wish. Assets to upload are in [`store-assets/`](store-assets) and the icons are
 
 ---
 
-## 2. Summary (short description — max 132 characters)
+## 2. Summary (short description - max 132 characters)
 
 **Vietnamese**
 ```
-Học từ vựng tiếng Anh (SAT/CEFR) ngay khi lướt web tiếng Việt. Hoàn toàn cục bộ — không tài khoản, không gửi dữ liệu.
+Học từ vựng tiếng Anh (SAT/CEFR) ngay khi lướt web tiếng Việt. Hoàn toàn cục bộ - không tài khoản, không gửi dữ liệu.
 ```
 
 **English**
 ```
-Learn English (SAT/CEFR) vocabulary while browsing Vietnamese sites. Fully local — no account, nothing leaves your browser.
+Learn English (SAT/CEFR) vocabulary while browsing Vietnamese sites. Fully local - no account, nothing leaves your browser.
 ```
 
 ---
@@ -44,7 +44,7 @@ Merid giúp bạn học từ vựng tiếng Anh một cách thụ động ngay t
 
 TÍNH NĂNG
 • Bộ từ vựng có sẵn: SAT, CEFR C1, CEFR C2, hoặc tất cả.
-• Ba kiểu hiển thị: Thay trực tiếp · Chỉ tô sáng (di chuột xem nghĩa) · Đặt bên cạnh — từ (word).
+• Ba kiểu hiển thị: Thay trực tiếp · Chỉ tô sáng (di chuột xem nghĩa) · Đặt bên cạnh - từ (word).
 • Điều chỉnh mức độ: Nhẹ / Vừa / Nặng.
 • Hai chiều quét: Việt → Anh và Anh → Anh (bật cả hai để quét đồng thời).
 • Thẻ học khi di chuột: định nghĩa, phát âm (đọc bằng giọng của trình duyệt), đồng nghĩa/trái nghĩa, ví dụ.
@@ -66,7 +66,7 @@ Merid helps you absorb English vocabulary passively while you read Vietnamese we
 
 FEATURES
 • Bundled datasets: SAT, CEFR C1, CEFR C2, or All.
-• Three display modes: Replace directly · Highlight only (hover for meaning) · Show beside — từ (word).
+• Three display modes: Replace directly · Highlight only (hover for meaning) · Show beside - từ (word).
 • Adjustable intensity: Light / Medium / Heavy.
 • Two scan directions: Vietnamese → English and English → English (enable both to scan at once).
 • Hover learning card: definition, pronunciation (browser text-to-speech), synonyms/antonyms, example.
@@ -101,7 +101,7 @@ Merid replaces selected Vietnamese words on web pages with their English equival
 | Host access (`content_scripts` on all sites) | The core feature is passive vocabulary replacement while the user browses Vietnamese websites, so the content script must run on the pages the user visits. It only reads visible text locally to find matches; nothing is sent anywhere. |
 
 There are **no** host permissions requested in `host_permissions`, no optional
-permissions, and no remote code — the extension makes zero network requests.
+permissions, and no remote code - the extension makes zero network requests.
 
 ---
 

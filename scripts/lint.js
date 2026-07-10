@@ -9,9 +9,12 @@ const files = [
     'content.js',
     'popup.js',
     'options.js',
+    'deck.js',
     'lib/vocab-core.js',
     'scripts/build.js',
-    'scripts/lint.js'
+    'scripts/lint.js',
+    'scripts/gen-assets.js',
+    'scripts/png-resize.js'
 ];
 
 let failed = 0;

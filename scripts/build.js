@@ -8,7 +8,7 @@ const { execFileSync } = require('child_process');
 const root = path.join(__dirname, '..');
 const dist = path.join(root, 'dist');
 
-// Explicit whitelist — only these ship.
+// Explicit whitelist - only these ship.
 const FILES = [
     'manifest.json',
     'background.js',
@@ -16,6 +16,7 @@ const FILES = [
     'content.css',
     'popup.html', 'popup.js', 'popup.css',
     'options.html', 'options.js', 'options.css',
+    'deck.html', 'deck.js', 'deck.css',
     'lib/vocab-core.js',
     'fonts/Outfit-latin.woff2',
     'fonts/Inter-latin.woff2',
@@ -53,19 +54,19 @@ for (const rel of FILES) {
     if (/\.(png|csv|woff2?)$/.test(rel)) continue;
     const txt = fs.readFileSync(path.join(dist, rel), 'utf8');
     if (SECRET_RE.test(txt)) {
-        console.error(`\nSECRET DETECTED in ${rel} — refusing to build. Remove the key first.`);
+        console.error(`\nSECRET DETECTED in ${rel} - refusing to build. Remove the key first.`);
         process.exit(1);
     }
 }
 
 console.log(`Copied ${FILES.length} files to dist/`);
 
-// Zip (optional — needs the `zip` CLI).
+// Zip (optional - needs the `zip` CLI).
 try {
     const zipPath = path.join(root, 'dist.zip');
     fs.rmSync(zipPath, { force: true });
     execFileSync('zip', ['-r', '-q', zipPath, '.'], { cwd: dist });
-    console.log('Created dist.zip — ready to upload to the Chrome Web Store.');
+    console.log('Created dist.zip - ready to upload to the Chrome Web Store.');
 } catch (e) {
     console.log('dist/ is ready. (Install `zip` to auto-create dist.zip, or zip the dist/ folder manually.)');
 }

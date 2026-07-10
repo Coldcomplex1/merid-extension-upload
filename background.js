@@ -1,5 +1,5 @@
 // =============================================================
-// Merid — background service worker (LOCAL-ONLY)
+// Merid - background service worker (LOCAL-ONLY)
 //
 // Responsibilities:
 //   - Load & cache the vocabulary datasets (CSV files bundled in the extension).
@@ -18,7 +18,7 @@ const C = self.VMCore;
 let vocabulary = [];
 
 // =============================================================
-// Vocabulary loading (bundled CSV datasets — local only)
+// Vocabulary loading (bundled CSV datasets - local only)
 // =============================================================
 async function loadVocabulary(datasetKey) {
     const key = datasetKey || 'sat';
