@@ -13,10 +13,15 @@ and sends nothing off your device.
   of pages you visit and compares it against bundled word lists. This scanning
   happens **entirely in your browser**. Page text is never uploaded.
 - **Your settings.** Your preferences (selected dataset, display mode, intensity,
-  Vietnamese→English / English→English direction, and on/off state) are stored on
-  your device using `chrome.storage`. If you enable Chrome Sync, your *settings*
-  may sync across your own Chrome profiles via Google - the extension itself runs
-  no account server.
+  and Vietnamese→English / English→English direction) are stored on your device
+  using `chrome.storage`. If you enable Chrome Sync, your *settings* may sync
+  across your own Chrome profiles via Google - the extension itself runs no
+  account server.
+
+Merid only reads a page after you explicitly activate it there (its keyboard
+shortcut or the popup's Activate button, which grant Chrome's temporary
+`activeTab` access). It is never injected automatically, and access ends when you
+navigate away or reload.
 
 ## What is sent off your device
 
@@ -32,8 +37,10 @@ contents anywhere.
 
 ## Your controls
 
-- **Turn the extension off** entirely with the popup toggle.
-- **Revert a page** to its original text from the popup.
+- **Activate Merid** on the current page with its keyboard shortcut
+  (`Ctrl+Shift+Y`, or `Command+Shift+Y` on macOS) or the popup's Activate button.
+- **Turn Merid off / revert the page** by pressing the shortcut again (or the
+  popup button). This restores the original text and stops processing.
 - **Delete everything:** Settings → **Delete all stored data** clears your
   settings. Uninstalling the extension also removes local data.
 

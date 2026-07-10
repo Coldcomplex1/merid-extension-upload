@@ -83,13 +83,35 @@ the popup to pick a dataset and toggle the extension on.
 
 Full policy in [`PRIVACY.md`](PRIVACY.md). In short:
 
+- Merid does **nothing to a page until you invoke it** - it is only injected into
+  the current tab when you press its keyboard shortcut or click **Activate** in
+  the popup (both use the temporary `activeTab` grant).
 - Page text is scanned **locally** in your browser to find vocabulary matches.
 - The extension **does not send webpage content to any server** and **uses no AI API**.
 - The extension **does not require or store any API key**.
-- Only your **settings** (selected dataset, display mode, intensity, on/off) are
-  stored locally via `chrome.storage`.
-- You can **disable the extension anytime** from the popup, and **Delete all
-  stored data** from the Settings page.
+- Only your **settings** (selected dataset, display mode, intensity, scan
+  direction, saved/known words) are stored locally via `chrome.storage`.
+- You can **turn Merid off for the current page** anytime (shortcut again or the
+  popup), and **Delete all stored data** from the Settings page.
+
+---
+
+## Activating Merid (keyboard shortcut)
+
+Merid runs **per page, on demand**. Press:
+
+- **Windows / Linux / ChromeOS:** `Ctrl+Shift+Y`
+- **macOS:** `Command+Shift+Y`
+
+The shortcut is the explicit user action that grants `activeTab`. Pressing it once
+injects Merid into the focused tab, applies your local settings and scans the page;
+pressing it again reverts the page and turns Merid off. The popup's **Activate on
+this page** button does exactly the same thing. Navigating to a new document (reload,
+new URL, new tab) requires pressing the shortcut again - Merid never re-injects
+itself automatically.
+
+You can change or clear the shortcut at any time from
+`chrome://extensions/shortcuts` (linked from the popup as **Change shortcut**).
 
 ---
 
@@ -97,12 +119,17 @@ Full policy in [`PRIVACY.md`](PRIVACY.md). In short:
 
 | Permission | Why |
 |---|---|
-| `storage` | Save your settings and deck locally (selected dataset, display mode, intensity, scan direction, on/off, saved words, known words). |
-| `activeTab` | Lets the popup talk to the current tab (e.g. "revert this page"). |
-| `content_scripts: <all_urls>` | The core feature is passive replacement **while you browse any Vietnamese site**, so the content script must run on the pages you visit. It only reads text locally to match vocabulary; nothing is sent anywhere. |
+| `storage` | Save your settings and deck locally (selected dataset, display mode, intensity, scan direction, saved words, known words). |
+| `activeTab` | Granted only when you invoke Merid (shortcut or popup). Lets Merid read/treat the current tab you explicitly acted on. |
+| `scripting` | Inject Merid's CSS + content script into the current tab at the moment you activate it. |
 
-No host permissions, no optional permissions, no external domains - the
-extension makes zero network requests.
+Merid also declares one `commands` entry (`toggle-merid-current-page`) - this is a
+keyboard-shortcut definition, **not** a permission or host access.
+
+**No** `host_permissions`, **no** `optional_host_permissions`, **no** `<all_urls>`
+content script, **no** `tabs` permission, and **no** external domains - the
+extension makes zero network requests and cannot touch a page you have not
+explicitly activated.
 
 ---
 
@@ -150,12 +177,12 @@ promo tile 440×280, marquee 1400×560). Copy-paste listing text lives in
 1. `npm test && npm run lint && npm run build` → produces `dist/` and `dist.zip`.
 2. Load `dist/` unpacked in Chrome (`chrome://extensions` → Developer mode → Load unpacked).
 3. Test on several real Vietnamese sites (e.g. vnexpress.net, tuoitre.vn).
-4. Confirm word replacement works.
-5. Confirm the on/off toggle works.
+4. Press `Ctrl/Cmd+Shift+Y` (or the popup's **Activate**) and confirm word replacement works.
+5. Press the shortcut again and confirm the page reverts / Merid turns off.
 6. Confirm the dataset selector works (SAT / C1 / C2 / All).
 7. Confirm **no API key** exists in the built files (the build fails if a key-shaped string is found).
 8. Confirm **no backend / API call** is made (open DevTools → Network on a test page; there should be no external requests from the extension).
-9. Confirm permissions are minimal (`storage`, `activeTab`).
+9. Confirm permissions are minimal (`activeTab`, `scripting`, `storage`) and no host permissions are present.
 10. Store assets are ready: icons `icon16/48/128.png`, screenshots + promo images in
     [`store-assets/`](store-assets). Copy the listing text from [`STORE_LISTING.md`](STORE_LISTING.md).
 11. Zip the production build (`dist.zip` is created for you).

@@ -96,12 +96,18 @@ Merid replaces selected Vietnamese words on web pages with their English equival
 
 | Permission | Justification to paste |
 |---|---|
-| `storage` | Save the user's own settings and word deck locally (selected dataset, display mode, intensity, scan direction, on/off state, saved words, known words). No data is transmitted. |
-| `activeTab` | Lets the toolbar popup act on the current tab (for example, "revert this page" to restore the original text). |
-| Host access (`content_scripts` on all sites) | The core feature is passive vocabulary replacement while the user browses Vietnamese websites, so the content script must run on the pages the user visits. It only reads visible text locally to find matches; nothing is sent anywhere. |
+| `storage` | Save the user's own settings and word deck locally (selected dataset, display mode, intensity, scan direction, saved words, known words). No data is transmitted. |
+| `activeTab` | Granted only when the user explicitly invokes Merid (its keyboard shortcut or the popup's Activate button). It lets Merid act on the single tab the user just acted on. |
+| `scripting` | Inject Merid's stylesheet and content script into the current tab at the moment the user activates it. Scripts are bundled; no remote code is used. |
 
-There are **no** host permissions requested in `host_permissions`, no optional
-permissions, and no remote code - the extension makes zero network requests.
+Merid also declares one keyboard command (`toggle-merid-current-page`) in the
+`commands` manifest key. This is a shortcut definition, not a permission or host
+access.
+
+There are **no** host permissions (`host_permissions`), **no** optional host
+permissions, **no** `<all_urls>` content script, **no** `tabs` permission, and no
+remote code - the extension makes zero network requests and cannot read any page
+the user has not explicitly activated.
 
 ---
 
